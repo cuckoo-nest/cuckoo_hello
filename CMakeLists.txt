@@ -26,14 +26,20 @@ ExternalProject_Add(
 )
 
 # =====================================================
-# 3. Define your actual build target
+# 3. Define your actual build targets
 # =====================================================
 # (after the toolchain is ready)
 
-add_executable(hello src/main.c)
+# Simple "hello" executable
+add_executable(hello src/hello/main.c)
 
-# Tell CMake that this target depends on the toolchain being ready
+# Executable for direct interaction with the backplate
+add_executable(backplate src/backplate/main.c)
+
+
+# Tell CMake that these targets depend on the toolchain being ready
 add_dependencies(hello linaro_toolchain)
+add_dependencies(backplate linaro_toolchain)
 
 # =====================================================
 # 4. Set the cross-compiler for this project
@@ -45,15 +51,20 @@ set(CMAKE_FIND_ROOT_PATH ${LINARO_DIR}/arm-linux-gnueabi/libc)
 set(CMAKE_SYSROOT ${CMAKE_FIND_ROOT_PATH})
 
 # Optional: Add flags, sysroot, etc.
-target_compile_options(hello PRIVATE
+set(COMMON_COMPILE_FLAGS
     --sysroot=${CMAKE_SYSROOT}
     -march=armv7-a
+    -std=c99
 )
+
+target_include_directories(backplate PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src/backplate)
+
+target_compile_options(hello PRIVATE ${COMMON_COMPILE_FLAGS})
+target_compile_options(backplate PRIVATE ${COMMON_COMPILE_FLAGS})
+
 
 # =====================================================
 # 5. Output location
 # =====================================================
-set_target_properties(hello PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output
-)
-
+set_target_properties(hello PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output)
+set_target_properties(backplate PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/output)
